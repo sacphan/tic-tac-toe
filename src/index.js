@@ -30,9 +30,7 @@ function Square(props)  {
           row.push(this.renderSquare(i * boardSize + j));
         }       
         boards.push(<div key={i} className="board-row">{row}</div>);
-      }
-  
-      
+      }     
       return (
         <div>
           <div className="status">{this.props.status}</div>
@@ -49,11 +47,12 @@ function Square(props)  {
         this.state = {
           history: [{
             squares: Array(9).fill(null),
-           
+            indexDefaul: 0
           }],
           stepNumber: 0,
           xIsNext:true,
-          sortHistory: true
+          sortHistory: true, 
+          
         }
     }
     handleClick(i)
@@ -71,10 +70,11 @@ function Square(props)  {
       this.setState({
         history:history.concat([{
           squares:squares,
-         
+          indexDefaul:i
         }]),
         stepNumber: this.state.stepNumber+1,
-        xIsNext: !this.state.xIsNext
+        xIsNext: !this.state.xIsNext,
+        
       })
    
     }
@@ -102,9 +102,9 @@ function Square(props)  {
       
       
       const moves = history.map((step,move) => {
-        
-        const row = Math.floor((move-1)/3);
-        const col =  (move-1) % 3;
+        const indexDefaul = step.indexDefaul;
+        const row = Math.floor((indexDefaul)/3);
+        const col =  (indexDefaul) % 3;
         const bold = move===this.state.stepNumber ? "bold" : "";
         const desc = move ? `Go to move #${move} [${row},${col}]` : 'Go to game start';
         return (
@@ -124,7 +124,7 @@ function Square(props)  {
       }
       else  
       {
-        console.log(this.state.stepNumber)
+        
         if (this.state.history.length === 10 && this.state.stepNumber==9)
         {
           status = 'Draw'
