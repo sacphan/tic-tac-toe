@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
@@ -13,51 +13,38 @@ function Square(props)  {
   
   }
  
-  class Board extends React.Component { 
-    renderSquare(i) {
-      
-        return <Square HightLine={this.props.HightLine && this.props.HightLine.includes(i)} key={i} value={this.props.squares[i]} onClick={()=> this.props.onClick(i)} />;
-      
-      
-    }
-  
-    render() {
+  function Board(props) { 
+    const renderSquare = (i) =>{      
+        return <Square HightLine={props.HightLine && props.HightLine.includes(i)} key={i} value={props.squares[i]} onClick={()=> props.onClick(i)} />;     
+    } 
       const boardSize = 3;
       let boards  = [];
       for (let i = 0; i < boardSize; i++) {
         let row = [];
         for (let j = 0; j < boardSize; j++) {
-          row.push(this.renderSquare(i * boardSize + j));
+          row.push(renderSquare(i * boardSize + j));
         }       
-        boards.push(<div key={i} className="board-row">{row}</div>);
-      }     
+        boards.push(<div key={i} className="board-row">{row}</div>);  
+      } 
       return (
         <div>
-          <div className="status">{this.props.status}</div>
+          <div className="status">{props.status}</div>
           {boards}
         </div>
       );
-    }
+    
   }
   
-  class Game extends React.Component {
-    constructor(props)
+  function Game(props)  {
+    
+    const [historys,setHistorys] = useState([{squares: Array(9).fill(null)}])
+    const [stepNumber,setStepNumber] = useState(0);
+    const [xIsNext,setxIsNext] = useState(true);
+    const [sortHistory,setsortHistory] = useState(true);
+
+    const handleClick = (i) =>
     {
-        super(props)
-        this.state = {
-          history: [{
-            squares: Array(9).fill(null),
-            indexDefaul: 0
-          }],
-          stepNumber: 0,
-          xIsNext:true,
-          sortHistory: true, 
-          
-        }
-    }
-    handleClick(i)
-    {
-      const history = this.state.history.slice(0,this.state.stepNumber + 1);
+      const history = historys.slice(0,stepNumber + 1);
       const current = history[history.length -1];
       const squares = current.squares.slice();
       //const stepNumber = history.length;
@@ -66,35 +53,25 @@ function Square(props)  {
         return;
       }
     
-      squares[i] =this.state.xIsNext ? 'X' : 'O';
-      this.setState({
-        history:history.concat([{
-          squares:squares,
-          indexDefaul:i
-        }]),
-        stepNumber: this.state.stepNumber+1,
-        xIsNext: !this.state.xIsNext,
-        
-      })
-   
+      squares[i] =xIsNext ? 'X' : 'O';
+      setHistorys(history.concat([{
+        squares:squares}]));
+        setStepNumber( stepNumber+1);
+        setxIsNext(!xIsNext);   
     }
-    jumpTo(step)
+    const jumpTo = (step) =>
     {
-      
-        this.setState({
-          stepNumber: step,
-          xIsNext: step % 2 === 0
-        })
+        setStepNumber(step);
+        setxIsNext(step % 2 === 0);
+        
     }
-    sortHistory()
-    {            
-        this.setState({
-          sortHistory: !this.state.sortHistory,                 
-      })
+    const sortHistoryFunc = () =>
+    {         
+      setsortHistory(!sortHistory)     
     }
-    render() {
-      const history = this.state.history;
-      const current = history[this.state.stepNumber];
+    
+      const history = historys;
+      const current = history[stepNumber];
      
      
        const calculateWinnerInfo = calculateWinner(current.squares);
@@ -102,18 +79,18 @@ function Square(props)  {
       
       
       const moves = history.map((step,move) => {
-        const indexDefaul = step.indexDefaul;
-        const row = Math.floor((indexDefaul)/3);
-        const col =  (indexDefaul) % 3;
-        const bold = move===this.state.stepNumber ? "bold" : "";
+        
+        const row = Math.floor((move-1)/3);
+        const col =  (move-1) % 3;
+        const bold = move===stepNumber ? "bold" : "";
         const desc = move ? `Go to move #${move} [${row},${col}]` : 'Go to game start';
         return (
           <li key={move}>
-            <button className={bold} onClick ={()=>this.jumpTo(move)}>{desc}</button>
+            <button className={bold} onClick ={()=>jumpTo(move)}>{desc}</button>
           </li>
         );
       })
-      if (!this.state.sortHistory)
+      if (!sortHistory)
       {
         moves.reverse();
       }
@@ -125,26 +102,26 @@ function Square(props)  {
       else  
       {
         
-        if (this.state.history.length === 10 && this.state.stepNumber==9)
+        if (history.length === 10 && stepNumber==9)
         {
           status = 'Draw'
         }
         else
-          status = `Next player: ${this.state.xIsNext ? "X" : "O"}`;
+          status = `Next player: ${xIsNext ? "X" : "O"}`;
       }
       return (
         <div className="game">
           <div className="game-board">
-            <Board squares ={current.squares}  onClick ={(i)=> this.handleClick(i)} HightLine={calculateWinnerInfo.HightLine}/>
+            <Board squares ={current.squares}  onClick ={(i)=> handleClick(i)} HightLine={calculateWinnerInfo.HightLine}/>
           </div>
           <div className="game-info">
             <div>{status}</div>
-            <ol><button onClick={()=>this.sortHistory()}>Sort</button></ol>
+            <ol><button onClick={()=>sortHistoryFunc()}>Sort</button></ol>
             <ol>{moves}</ol>
           </div>
         </div>
       );
-    }
+    
   }
   
   // ========================================
